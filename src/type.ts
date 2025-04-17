@@ -35,10 +35,18 @@ export interface Specification {
     productId: string
 }
 
-export interface Book {
-    id: number,
-    title: string,
-    author: string,
-    cover: string,
-    progress: number
+export interface Carts {
+    cartItemId: string,
+    userId: string,
+    productId: string,
+    quantity: string,
+}
+
+export interface Orders {
+    orderId: string,
+    userId: string,
+    totalAmount: string,
+    paymentMethod: string,
+    status: string,
+    createTime: string,
 }

@@ -1,60 +1,104 @@
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref , computed} from 'vue'
 import {router} from "../router/index.ts";
-import type { Book } from '../type.ts'
 import {userInfo, userInfoUpdate} from "../api/user.ts";
 import {ElMessage} from "element-plus";
+import {getAllProductInfo} from "../api/products";
+import {
+  addProductToCart,
+  deleteCartItemById,
+  getCartList,
+  startPay,
+  submitOrder,
+  updateQuantity
+} from "../api/shopping";
+// import {regionOptions} from '../assets/region.js' // 省市区数据（后面我给你）
 
-const user = ref('')
+import {
+  provinceAndCityData,
+  pcTextArr,
+  regionData,
+  pcaTextArr,
+  codeToText,
+} from "element-china-area-data";
 
-getUserInfo();
 
-if (!user) {
-  ElMessage({
-    message: "未登录",
-    type: 'error',
-    center: true,
-  })
-  router.push('/login')
-}
-if(sessionStorage.getItem("role")!='USER') {
-  ElMessage({
-    message: "当前身份无法查看该页面",
-    type: 'error',
-    center: true,
-  })
-  router.push('/login')
-}
+const user = ref(
+{
+  username: 'yujintao',
+  name: '于锦涛',
+  telephone: '15146705116',
+  email: '2879549937@qq.com',
+  avatar: 'https://via.placeholder.com/150'
+})
+//
+// getUserInfo();
+// validateUser();
 
 const isDropdownVisible = ref(false)
 const isEditing = ref(false)
 const editedUser = ref(user)
 
-const recentBooks = ref<Book[]>([
-  {
-    id: 1,
-    title: '三体',
-    author: '刘慈欣',
-    cover: 'https://placeholder.co/200x300',
-    progress: 75
-  },
-  {
-    id: 2,
-    title: '活着',
-    author: '余华',
-    cover: 'https://placeholder.co/200x300',
-    progress: 30
-  },
-  {
-    id: 3,
-    title: '百年孤独',
-    author: '加西亚·马尔克斯',
-    cover: 'https://placeholder.co/200x300',
-    progress: 90
-  }
+//当前已售卖的所有商品
+const products = ref([
+  { id: 1, title: '番茄T恤1', price: 99, rate: 10,cover: 'https://via.placeholder.com/150' },
+  { id: 2, title: '番茄T恤2', price: 99, rate: 10,cover: 'https://via.placeholder.com/150' },
+  { id: 3, title: '番茄T恤3', price: 99, rate: 10,cover: 'https://via.placeholder.com/150' },
 ])
+// getProductInfo();
 
+//购物车列表
+interface CartItem {
+  cartItemId: number,
+  productId: number,
+  title: string,
+  price: number,
+  quantity: number,
+  cover: string,
+  description: string,
+}
+
+const cart = ref<CartItem[]>([])
+// getCart()
+
+//控制购物车列表是否可见
+const cartVisible = ref(false)
+//总金额
+const totalPrice = computed(() =>
+    cart.value.reduce((total, item) => total + item.price * item.quantity, 0)
+)
+//总物品数
+const totalItems = computed(() =>
+    cart.value.reduce((count, item) => count + item.quantity, 0)
+)
+
+
+// 模拟：购物车商品 ID 列表
+const cartItemIds = ref(['101', '102'])
+// 自动提取购物车商品 ID
+// const cartItemIds = computed(() => cart.value.map(item => item.id))
+
+// 模拟：地址列表
+const selectedRegion = ref([])
+const fullAddress = computed(() => selectedRegion.value.join(' '))
+
+// 弹窗控制
+const payDialogVisible = ref(false)
+const paymentMethod = ref('alipay') // 默认支付宝
+const isOrderSubmitted = ref(false)
+const paymentForm = ref('')
+
+const order = ref({
+  orderId: '',
+  username: '',
+  totalAmount: 0,
+  paymentMethod: '',
+  createTime: '',
+  status: '',
+})
+
+//保存修改的用户信息
 const handleSave = () => {
   if (editedUser.value) {
     userInfoUpdate(user.value).then(res => {
@@ -76,14 +120,126 @@ const handleSave = () => {
   }
 }
 
+//退出登录
 const handleLogout = () => {
   router.push('/login')
 }
 
+//在加载界面前，先获得用户信息
 function getUserInfo() {
   userInfo(sessionStorage.getItem("username")).then(res => {
     user.value = res.data.data;
   })
+}
+
+//在加载界面前，获得全部商品信息
+function getProductInfo() {
+  getAllProductInfo().then(res => {
+    products.value = res.data.data;
+  })
+}
+
+//验证用户身份
+function validateUser() {
+  if (!user) {
+    ElMessage({
+      message: "未登录",
+      type: 'error',
+      center: true,
+    })
+    router.push('/login')
+  }
+  if(sessionStorage.getItem("role")!='USER') {
+    ElMessage({
+      message: "当前身份无法查看该页面",
+      type: 'error',
+      center: true,
+    })
+    router.push('/login')
+  }
+}
+
+//将商品添加到购物车
+function addToCart(product) {
+  const existing = cart.value.find(item => item.productId === product.id)
+  if (existing) {
+    existing.quantity += 1
+    // updateItemQuantity(existing.cartItemId, existing.quantity)
+  } else {
+    cart.value.push({ ...product, quantity: 1 })
+    // addItem(product.id, 1)
+  }
+}
+
+//将商品移除购物车
+function removeFromCart(id) {
+  cart.value = cart.value.filter(item => item.id !== id)
+  // deleteItem(id)
+  // getCart()
+}
+
+//支付订单
+function payOrder() {
+  // startPay(Number(order.value.orderId)).then(res => {
+  //   paymentForm.value = res.data.data.paymentForm
+  //   document.write(paymentForm.value)
+  //   document.forms[0].submit()
+  // })
+  ElMessage.success('支付成功！')
+  cart.value = []
+  cartVisible.value = false
+  isOrderSubmitted.value = false
+  payDialogVisible.value = false
+}
+
+function getCart() {
+  getCartList().then(res => {
+    cart.value = res.data.data;
+  })
+}
+function updateItemQuantity(cartItemId, quantity) {
+  updateQuantity(Number(cartItemId), quantity).then(res => {
+    if (res.data.code === '200') {
+    } else if(res.data.code === '400') {
+      ElMessage({
+        message: res.data.msg,
+        type: 'error',
+        center: true,
+      })
+    }
+  })
+}
+
+function addItem(productId, quantity) {
+  addProductToCart(Number(productId), quantity).then(res => {
+    cart.value.push(res.data.data)
+  })
+}
+
+function deleteItem(cartItemId) {
+  deleteCartItemById(Number(cartItemId)).then(res => {
+    if (res.data.code === '200') {
+    } else if(res.data.code === '400') {
+      ElMessage({
+        message: res.data.msg,
+        type: 'error',
+        center: true,
+      })
+    }
+  })
+}
+
+// 打开支付弹窗
+function openPayDialog() {
+  payDialogVisible.value = true
+}
+
+function handleSubmitPay() {
+  // submitOrder(cartItemIds, fullAddress, paymentMethod).then(res => {
+  //   order.value = res.data.data
+  // })
+  // payDialogVisible.value = false
+  isOrderSubmitted.value = true
 }
 </script>
 
@@ -142,10 +298,6 @@ function getUserInfo() {
                 <label>邮箱</label>
                 <input v-model="editedUser.email" type="email">
               </div>
-              <div class="form-group">
-                <label>最爱类型</label>
-                <input v-model="editedUser.favoriteGenre" type="text">
-              </div>
               <div class="button-group">
                 <button class="save-button" @click="handleSave">保存</button>
                 <button class="cancel-button" @click="isEditing = false">取消</button>
@@ -154,33 +306,77 @@ function getUserInfo() {
           </div>
         </div>
 
-        <!-- Bookshelf Section -->
-        <div class="bookshelf-section">
-          <div class="section-header">
-            <h2>最近阅读</h2>
-            <a href="#" class="view-all">查看全部</a>
+        <div class="shopping-container">
+          <!-- 商品展示区 -->
+          <div class="product-list">
+            <el-card v-for="item in products" :key="item.id" class="product-card" shadow="hover">
+              <img :src="item.image" class="product-image" />
+              <h3>{{ item.title }}</h3>
+              <p class="price">￥{{ item.price }}</p>
+              <el-button type="primary" @click="addToCart(item)">加入购物车</el-button>
+            </el-card>
           </div>
 
-          <div class="books-grid">
-            <div v-for="book in recentBooks" :key="book.id" class="book-card">
-              <img :src="book.cover" :alt="book.title" class="book-cover">
-              <div class="book-info">
-                <h3>{{ book.title }}</h3>
-                <p class="author">{{ book.author }}</p>
-                <div class="progress-bar">
-                  <div class="progress" :style="{ width: `${book.progress}%` }"></div>
-                </div>
-                <span class="progress-text">{{ book.progress }}%</span>
+          <!-- 购物车侧边栏 -->
+          <el-drawer v-model="cartVisible" title="购物车" direction="rtl" size="30%">
+            <div v-if="cart.length === 0" class="empty-text">购物车为空</div>
+            <div v-else class="cart-items">
+              <div v-for="item in cart" :key="item.id" class="cart-item">
+                <span>{{ item.title }}</span>
+                <el-input-number v-model="item.quantity" :min="1" />
+                <span class="price">￥{{ item.price * item.quantity }}</span>
+                <el-button type="danger" icon="Delete" @click="removeFromCart(item.id)" circle />
+              </div>
+              <div class="cart-footer">
+                <div class="total">总计：￥{{ totalPrice }}</div>
+                <el-button type="success" @click="openPayDialog" :disabled="cart.length === 0">立即支付</el-button>
               </div>
             </div>
-          </div>
+          </el-drawer>
 
-          <div class="recommendations">
-            <h2>为你推荐</h2>
-            <div class="recommendation-placeholder">
-              <p>根据您的阅读喜好，我们为您精选了一些好书...</p>
+          <!-- 悬浮购物车按钮 -->
+          <el-button class="floating-cart-btn" type="primary" icon="ShoppingCart" @click="cartVisible = true">
+            购物车（{{ totalItems }}）
+          </el-button>
+          <!-- 支付弹窗 -->
+          <el-dialog v-model="payDialogVisible" title="确认支付信息">
+            <div class="mb-3">
+              <el-cascader
+                  placeholder="请选择省市区"
+                  size="large"
+                  :options="pcaTextArr"
+                  v-model="selectedRegion">
+              </el-cascader>
             </div>
-          </div>
+
+            <div class="mb-3">
+              <p>选择支付方式：</p>
+              <el-radio-group v-model="paymentMethod">
+                <el-radio label="alipay">支付宝</el-radio>
+                <el-radio label="wechat">微信</el-radio>
+                <el-radio label="credit_card">信用卡</el-radio>
+              </el-radio-group>
+            </div>
+
+            <template #footer>
+              <el-button @click="payDialogVisible = false ">取消</el-button>
+              <el-button type="primary" @click="handleSubmitPay">提交订单</el-button>
+            </template>
+            <div v-if="isOrderSubmitted" class="mt-6 p-4 border rounded shadow">
+              <el-descriptions title="订单详情" border :column="2">
+                <el-descriptions-item label="订单号">{{ order.orderId }}</el-descriptions-item>
+                <el-descriptions-item label="用户名">{{ order.username }}</el-descriptions-item>
+                <el-descriptions-item label="支付方式">{{ order.paymentMethod }}</el-descriptions-item>
+                <el-descriptions-item label="下单时间">{{ order.createTime }}</el-descriptions-item>
+                <el-descriptions-item label="订单金额">￥{{ order.totalAmount }}</el-descriptions-item>
+                <el-descriptions-item label="订单状态">{{ order.status }}</el-descriptions-item>
+              </el-descriptions>
+
+              <div class="mt-4 text-right">
+                <el-button type="success" @click="payOrder">立即支付</el-button>
+              </div>
+            </div>
+          </el-dialog>
         </div>
       </div>
     </main>
@@ -515,5 +711,67 @@ function getUserInfo() {
     width: 100%;
     justify-content: center;
   }
+}
+
+.shopping-container {
+  padding: 2rem;
+  background: #f9f9f9;
+  min-height: 100vh;
+}
+
+.product-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 20px;
+}
+
+.product-card {
+  text-align: center;
+  padding: 1rem;
+  transition: 0.3s;
+}
+
+.product-image {
+  width: 100%;
+  height: 150px;
+  object-fit: cover;
+  margin-bottom: 10px;
+}
+
+.price {
+  font-weight: bold;
+  color: #f56c6c;
+  margin: 10px 0;
+}
+
+.floating-cart-btn {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  z-index: 1000;
+}
+
+.cart-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0;
+  gap: 10px;
+}
+
+.cart-footer {
+  margin-top: 20px;
+  text-align: right;
+}
+
+.total {
+  font-size: 1.2rem;
+  margin-bottom: 10px;
+}
+
+.empty-text {
+  text-align: center;
+  color: #999;
+  padding: 2rem;
 }
 </style>

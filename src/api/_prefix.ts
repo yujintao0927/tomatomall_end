@@ -6,3 +6,6 @@ export const ACCOUNT_MODULE = `${API_MODULE}/accounts`
 
 //商店模块
 export const PRODUCT_MODULE = `${API_MODULE}/products`
+
+//购物模块
+export const SHOPPING_MODULE = `${API_MODULE}/cart`
