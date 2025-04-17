@@ -5,6 +5,7 @@ import {router} from "../router/index.ts";
 import {userInfo, userInfoUpdate} from "../api/user.ts";
 import {ElMessage} from "element-plus";
 import {getAllProductInfo} from "../api/products";
+import {CartItem} from "../type";
 import {
   addProductToCart,
   deleteCartItemById,
@@ -13,7 +14,6 @@ import {
   submitOrder,
   updateQuantity
 } from "../api/shopping";
-// import {regionOptions} from '../assets/region.js' // 省市区数据（后面我给你）
 
 import {
   provinceAndCityData,
@@ -48,16 +48,6 @@ const products = ref([
 ])
 // getProductInfo();
 
-//购物车列表
-interface CartItem {
-  cartItemId: number,
-  productId: number,
-  title: string,
-  price: number,
-  quantity: number,
-  cover: string,
-  description: string,
-}
 
 const cart = ref<CartItem[]>([])
 // getCart()
@@ -81,7 +71,6 @@ const cartItemIds = ref(['101', '102'])
 
 // 模拟：地址列表
 const selectedRegion = ref([])
-const fullAddress = computed(() => selectedRegion.value.join(' '))
 
 // 弹窗控制
 const payDialogVisible = ref(false)

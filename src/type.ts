@@ -3,9 +3,6 @@ export interface User {
     name: string
     avatar: string
     email: string
-    readingTime: string
-    booksRead: number
-    favoriteGenre: string
 }
 
 export interface StockPile {
@@ -13,7 +10,6 @@ export interface StockPile {
     productId: string,
     amount: number,
     frozen: number,
-    total: number
 }
 
 export interface Product {
@@ -49,4 +45,14 @@ export interface Orders {
     paymentMethod: string,
     status: string,
     createTime: string,
+}
+
+export interface CartItem {
+    cartItemId: number,
+    productId: number,
+    title: string,
+    price: number,
+    quantity: number,
+    cover: string,
+    description: string,
 }
