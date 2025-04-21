@@ -1,11 +1,11 @@
 
 <script setup lang="ts">
 import { ref , computed} from 'vue'
-import {router} from "../router/index.ts";
-import {userInfo, userInfoUpdate} from "../api/user.ts";
+import {router} from "../../router";
+import {userInfo, userInfoUpdate} from "../../api/user.ts";
 import {ElMessage} from "element-plus";
-import {getAllProductInfo} from "../api/products";
-import {CartItem} from "../type";
+import {getAllProductInfo} from "../../api/products";
+import {CartItem} from "../../type";
 import {
   addProductToCart,
   deleteCartItemById,
@@ -13,7 +13,7 @@ import {
   startPay,
   submitOrder,
   updateQuantity
-} from "../api/shopping";
+} from "../../api/shopping";
 
 import {
   provinceAndCityData,

@@ -15,7 +15,7 @@ const router = createRouter({
         meta: {title: '用户注册'}
     }, {
         path: '/home',
-        component: () => import('../views/Home.vue'),
+        component: () => import('../views/user/Home.vue'),
         meta: {title: 'home页'}
     }, {
         path: '/404',
@@ -27,6 +27,16 @@ const router = createRouter({
         name: 'adminHome',
         component: () => import('../views/admin/Home.vue'),
         meta: {title: 'adminHome'}
+    }, {
+        path: '/user/advertisement',
+        name: 'advertisement',
+        component: () => import('../views/user/Advertisement.vue'),
+        meta: {title: 'advertisement'}
+    }, {
+        path: '/products/:id',
+        name: 'productDetail',
+        component: () => import('../views/product/ProductDetail.vue'),
+        meta: {title: 'productDetail'}
     }]
 })
 

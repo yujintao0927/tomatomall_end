@@ -56,3 +56,11 @@ export interface CartItem {
     cover: string,
     description: string,
 }
+
+export interface Advertisement {
+    id: string,
+    title: string,
+    content: string,
+    imageUrl: string,
+    productId: string,
+}
