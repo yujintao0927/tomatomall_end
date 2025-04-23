@@ -9,3 +9,6 @@ export const PRODUCT_MODULE = `${API_MODULE}/products`
 
 //购物模块
 export const SHOPPING_MODULE = `${API_MODULE}/cart`
+
+//广告模块
+export const ADVERTISEMENT_MODULE = `${API_MODULE}/advertisements`

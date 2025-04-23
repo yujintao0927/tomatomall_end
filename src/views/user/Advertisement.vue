@@ -1,36 +1,36 @@
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue'
 import {router} from '../../router/index';
 import { ElMessage } from 'element-plus'
+import {createAd, delAd, getAd, updateAd} from "../../api/advertisement.ts";
+import {Advertisement} from "../../type.ts"
+import {get} from "axios";
 
+//获得广告
+const ads = ref<Advertisement[]>([])
+getAdvertisement()
 
-const ads = ref([
-  {
-    id: 1,
-    title: '限时优惠📢',
-    content: '全场满100减20，限时促销！',
-    image_url: 'https://picsum.photos/seed/ad1/400/200',
-    product_id: 101
-  },
-  {
-    id: 2,
-    title: '新书上架📚',
-    content: '《深入理解JVM》火热上市，点击了解！',
-    image_url: 'https://picsum.photos/seed/ad2/400/200',
-    product_id: 102
-  }
-])
+function getAdvertisement() {
+  getAd().then(res => {
+    if (res.data.code === '200') {  //类型守卫，它检查 res.data 对象中是否存在名为 code 的属性
+      ads.value = res.data.data
+    } else {
+      ElMessage({
+        message: res.data.msg,
+        type: 'error',
+        center: true,
+      })
+    }
+  })
+
+}
 
 const dialogVisible = ref(false)
-const editingAd = ref({})
+const editingAd = ref<Advertisement>()
+
 
 function openAddDialog() {
-  editingAd.value = {
-    title: '',
-    content: '',
-    image_url: '',
-    product_id: null
-  }
+  initEditingAd()
   dialogVisible.value = true
 }
 
@@ -41,24 +41,60 @@ function openEditDialog(ad) {
 
 function saveAd() {
   if (editingAd.value.id) {
-    const idx = ads.value.findIndex(ad => ad.id === editingAd.value.id)
-    if (idx !== -1) ads.value[idx] = { ...editingAd.value }
-    ElMessage.success('广告更新成功')
+    updateAd(editingAd.value).then(res => {
+      if (res.data.code === '200') {  //类型守卫，它检查 res.data 对象中是否存在名为 code 的属性
+        ElMessage.success("更新成功")
+      } else {
+        ElMessage({
+          message: res.data.msg,
+          type: 'error',
+          center: true,
+        })
+      }
+    })
   } else {
-    editingAd.value.id = Date.now()
-    ads.value.push({ ...editingAd.value })
-    ElMessage.success('广告添加成功')
+    createAd(editingAd.value).then(res => {
+      if (res.data.code === '200') {  //类型守卫，它检查 res.data 对象中是否存在名为 code 的属性
+        ElMessage.success('广告添加成功')
+      } else {
+        ElMessage({
+          message: res.data.msg,
+          type: 'error',
+          center: true,
+        })
+      }
+    })
   }
   dialogVisible.value = false
+  getAdvertisement()
 }
 
 function deleteAd(id) {
-  ads.value = ads.value.filter(ad => ad.id !== id)
-  ElMessage.success('广告删除成功')
+  delAd(Number(id)).then(res => {
+      if (res.data.code === '200') {  //类型守卫，它检查 res.data 对象中是否存在名为 code 的属性
+        ElMessage.success('广告删除成功')
+      } else {
+        ElMessage({
+          message: res.data.msg,
+          type: 'error',
+          center: true,
+        })
+      }
+  })
+  getAdvertisement()
 }
 
 function goToProduct(productId) {
   router.push(`/products/${productId}`)
+}
+
+function initEditingAd() {
+  editingAd.value = {
+    title: '',
+    content: '',
+    image_url: '',
+    product_id: null
+  }
 }
 </script>
 

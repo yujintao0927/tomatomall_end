@@ -5,7 +5,7 @@ import {router} from "../../router";
 import {userInfo, userInfoUpdate} from "../../api/user.ts";
 import {ElMessage} from "element-plus";
 import {getAllProductInfo} from "../../api/products";
-import {CartItem} from "../../type";
+import {CartItem, Product, User} from "../../type";
 import {
   addProductToCart,
   deleteCartItemById,
@@ -24,29 +24,31 @@ import {
 } from "element-china-area-data";
 
 
-const user = ref(
-{
-  username: 'yujintao',
-  name: '于锦涛',
-  telephone: '15146705116',
-  email: '2879549937@qq.com',
-  avatar: 'https://via.placeholder.com/150'
-})
-//
-// getUserInfo();
-// validateUser();
+// const user = ref(
+// {
+//   username: 'yujintao',
+//   name: '于锦涛',
+//   telephone: '15146705116',
+//   email: '2879549937@qq.com',
+//   avatar: 'https://via.placeholder.com/150'
+// })
+
+const user = ref<User>()
+getUserInfo();
+validateUser();
 
 const isDropdownVisible = ref(false)
 const isEditing = ref(false)
 const editedUser = ref(user)
 
 //当前已售卖的所有商品
-const products = ref([
-  { id: 1, title: '番茄T恤1', price: 99, rate: 10,cover: 'https://via.placeholder.com/150' },
-  { id: 2, title: '番茄T恤2', price: 99, rate: 10,cover: 'https://via.placeholder.com/150' },
-  { id: 3, title: '番茄T恤3', price: 99, rate: 10,cover: 'https://via.placeholder.com/150' },
-])
-// getProductInfo();
+// const products = ref([
+//   { id: 1, title: '番茄T恤1', price: 99, rate: 10,cover: 'https://via.placeholder.com/150' },
+//   { id: 2, title: '番茄T恤2', price: 99, rate: 10,cover: 'https://via.placeholder.com/150' },
+//   { id: 3, title: '番茄T恤3', price: 99, rate: 10,cover: 'https://via.placeholder.com/150' },
+// ])
+const products = ref<Product[]>([])
+getProductInfo();
 
 
 const cart = ref<CartItem[]>([])
@@ -54,6 +56,7 @@ const cart = ref<CartItem[]>([])
 
 //控制购物车列表是否可见
 const cartVisible = ref(false)
+
 //总金额
 const totalPrice = computed(() =>
     cart.value.reduce((total, item) => total + item.price * item.quantity, 0)
@@ -104,8 +107,9 @@ const handleSave = () => {
           center: true,
         })
       }
-    isEditing.value = false
     })
+    isEditing.value = false
+    getUserInfo()
   }
 }
 
@@ -153,27 +157,27 @@ function addToCart(product) {
   const existing = cart.value.find(item => item.productId === product.id)
   if (existing) {
     existing.quantity += 1
-    // updateItemQuantity(existing.cartItemId, existing.quantity)
+    updateItemQuantity(existing.cartItemId, existing.quantity)
   } else {
-    cart.value.push({ ...product, quantity: 1 })
-    // addItem(product.id, 1)
+    addItem(product.id, 1)
   }
+  getCart()
 }
 
 //将商品移除购物车
 function removeFromCart(id) {
   cart.value = cart.value.filter(item => item.id !== id)
-  // deleteItem(id)
-  // getCart()
+  deleteItem(id)
+  getCart()
 }
 
 //支付订单
 function payOrder() {
-  // startPay(Number(order.value.orderId)).then(res => {
-  //   paymentForm.value = res.data.data.paymentForm
-  //   document.write(paymentForm.value)
-  //   document.forms[0].submit()
-  // })
+  startPay(Number(order.value.orderId)).then(res => {
+    paymentForm.value = res.data.data.paymentForm
+    document.write(paymentForm.value)
+    document.forms[0].submit()
+  })
   ElMessage.success('支付成功！')
   cart.value = []
   cartVisible.value = false
@@ -183,7 +187,15 @@ function payOrder() {
 
 function getCart() {
   getCartList().then(res => {
-    cart.value = res.data.data;
+    if (res.data.code === '200') {
+      cart.value = res.data.data;
+    } else if(res.data.code === '400') {
+      ElMessage({
+        message: res.data.msg,
+        type: 'error',
+        center: true,
+      })
+    }
   })
 }
 function updateItemQuantity(cartItemId, quantity) {
@@ -224,10 +236,10 @@ function openPayDialog() {
 }
 
 function handleSubmitPay() {
-  // submitOrder(cartItemIds, fullAddress, paymentMethod).then(res => {
-  //   order.value = res.data.data
-  // })
-  // payDialogVisible.value = false
+  submitOrder(cartItemIds, fullAddress, paymentMethod).then(res => {
+    order.value = res.data.data
+  })
+  payDialogVisible.value = false
   isOrderSubmitted.value = true
 }
 </script>

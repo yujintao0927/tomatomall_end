@@ -1,3 +1,38 @@
+<script setup lang="ts">
+import { ref, onMounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { ElMessage } from 'element-plus'
+import {Product} from "../../type";
+import {getProductInfo} from "../../api/products";
+
+const route = useRoute()
+const router = useRouter()
+const productId = route.params.id
+
+const product = ref<Product>()
+getProductById(productId)
+
+function getProductById(id) {
+  getProductInfo(Number(id)).then(res => {
+    if (res.data.code === '200') {  //类型守卫，它检查 res.data 对象中是否存在名为 code 的属性
+      product.value = res.data.data
+    } else {
+      ElMessage({
+        message: res.data.msg,
+        type: 'error',
+        center: true,
+      })
+    }
+  })
+}
+
+
+const goBack = () => {
+  router.back()
+}
+</script>
+
+
 <template>
   <div class="min-h-screen bg-gradient-to-br from-white to-purple-50 p-8">
     <div class="max-w-5xl mx-auto bg-white rounded-3xl shadow-2xl p-6 flex flex-col md:flex-row gap-6 animate-fade-in">
@@ -19,7 +54,7 @@
 
           <div class="text-lg text-gray-800 mb-2">
             <strong>规格：</strong>
-            <el-tag v-for="(spec, idx) in product.specifications" :key="idx" class="mr-2">{{ spec }}</el-tag>
+            <el-tag v-for="(spec, idx) in product.specifications" :key="idx" class="mr-2"> {{ spec.item }}: {{ spec.value }}</el-tag>
           </div>
 
           <div class="text-2xl font-bold text-pink-600 mt-4">
@@ -36,62 +71,6 @@
   </div>
 </template>
 
-<script setup>
-import { ref, onMounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
-// import axios from 'axios'
-
-const route = useRoute()
-const router = useRouter()
-const productId = route.params.id
-
-console.log(productId)
-
-const product = ref({
-  id: productId,
-  title: '加载中...',
-  description: '',
-  cover: 'https://via.placeholder.com/600x400?text=Loading',
-  price: 0,
-  specifications: []
-})
-
-// 🧪 模拟数据源（可以替换为 axios 请求）
-const mockProducts = [
-  {
-    id: '101',
-    title: '高级 Java 编程',
-    description: '深入理解Java核心原理，从基础到进阶全覆盖！',
-    cover: 'https://picsum.photos/id/1015/600/400',
-    price: 99.99,
-    specifications: ['纸质版', '800页', '2024版']
-  },
-  {
-    id: '102',
-    title: '前端开发宝典',
-    description: '掌握Vue、React、Node全栈开发的实用指南。',
-    cover: 'https://picsum.photos/id/1025/600/400',
-    price: 129.5,
-    specifications: ['电子书', 'PDF', '实战案例']
-  }
-]
-
-// 🧠 获取商品详情（模拟请求）
-onMounted(() => {
-  const found = mockProducts.find(p => p.id === productId)
-  if (found) {
-    product.value = found
-  } else {
-    ElMessage.error('未找到该商品！')
-    goBack()
-  }
-})
-
-const goBack = () => {
-  router.back()
-}
-</script>
 
 <style scoped>
 @keyframes fade-in {
