@@ -16,11 +16,7 @@ import {
 } from "../../api/shopping";
 
 import {
-  provinceAndCityData,
-  pcTextArr,
-  regionData,
   pcaTextArr,
-  codeToText,
 } from "element-china-area-data";
 
 
@@ -51,35 +47,34 @@ const products = ref<Product[]>([])
 getProductInfo();
 
 
-const cart = ref<CartItem[]>([])
-// getCart()
+const carts = ref<CartItem[]>([])
+getCart()
 
 //控制购物车列表是否可见
 const cartVisible = ref(false)
 
 //总金额
-const totalPrice = computed(() =>
-    cart.value.reduce((total, item) => total + item.price * item.quantity, 0)
-)
+// const totalPrice = computed(() =>
+//     cart.value.reduce((total, item) => total + item.price * item.quantity, 0)
+// )
+const totalAmount = ref(0)
 //总物品数
-const totalItems = computed(() =>
-    cart.value.reduce((count, item) => count + item.quantity, 0)
-)
+// const totalItems = computed(() =>
+//     cart.value.reduce((count, item) => count + item.quantity, 0)
+// )
+const total = ref(0)
 
 
-// 模拟：购物车商品 ID 列表
-const cartItemIds = ref(['101', '102'])
-// 自动提取购物车商品 ID
-// const cartItemIds = computed(() => cart.value.map(item => item.id))
 
 // 模拟：地址列表
 const selectedRegion = ref([])
 
 // 弹窗控制
 const payDialogVisible = ref(false)
-const paymentMethod = ref('alipay') // 默认支付宝
 const isOrderSubmitted = ref(false)
 const paymentForm = ref('')
+const paymentMethod = ref('alipay') // 默认支付宝
+const cartItemIds = computed(() => carts.value.map(item => Number(item.cartItemId)))
 
 const order = ref({
   orderId: '',
@@ -89,6 +84,7 @@ const order = ref({
   createTime: '',
   status: '',
 })
+
 
 //保存修改的用户信息
 const handleSave = () => {
@@ -154,11 +150,15 @@ function validateUser() {
 
 //将商品添加到购物车
 function addToCart(product) {
-  const existing = cart.value.find(item => item.productId === product.id)
+  console.log("add")
+  const existing = carts.value.find(item => item.product.id === product.id)
+  console.log(product)
   if (existing) {
+    console.log("yes")
     existing.quantity += 1
     updateItemQuantity(existing.cartItemId, existing.quantity)
   } else {
+    console.log("no")
     addItem(product.id, 1)
   }
   getCart()
@@ -166,7 +166,7 @@ function addToCart(product) {
 
 //将商品移除购物车
 function removeFromCart(id) {
-  cart.value = cart.value.filter(item => item.id !== id)
+  // cart.value = cart.value.filter(item => item.id !== id)
   deleteItem(id)
   getCart()
 }
@@ -179,7 +179,7 @@ function payOrder() {
     document.forms[0].submit()
   })
   ElMessage.success('支付成功！')
-  cart.value = []
+  carts.value = []
   cartVisible.value = false
   isOrderSubmitted.value = false
   payDialogVisible.value = false
@@ -188,7 +188,9 @@ function payOrder() {
 function getCart() {
   getCartList().then(res => {
     if (res.data.code === '200') {
-      cart.value = res.data.data;
+      carts.value = res.data.data.carts;
+      total.value = res.data.data.total;
+      totalAmount.value = res.data.data.totalAmount;
     } else if(res.data.code === '400') {
       ElMessage({
         message: res.data.msg,
@@ -199,7 +201,7 @@ function getCart() {
   })
 }
 function updateItemQuantity(cartItemId, quantity) {
-  updateQuantity(Number(cartItemId), quantity).then(res => {
+  updateQuantity(Number(cartItemId), {quantity: quantity}).then(res => {
     if (res.data.code === '200') {
     } else if(res.data.code === '400') {
       ElMessage({
@@ -213,13 +215,8 @@ function updateItemQuantity(cartItemId, quantity) {
 
 function addItem(productId, quantity) {
   addProductToCart(Number(productId), quantity).then(res => {
-    cart.value.push(res.data.data)
-  })
-}
-
-function deleteItem(cartItemId) {
-  deleteCartItemById(Number(cartItemId)).then(res => {
     if (res.data.code === '200') {
+      getCart()
     } else if(res.data.code === '400') {
       ElMessage({
         message: res.data.msg,
@@ -230,13 +227,44 @@ function deleteItem(cartItemId) {
   })
 }
 
+function deleteItem(cartItemId) {
+  deleteCartItemById(Number(cartItemId)).then(res => {
+    if (res.data.code === '200') {
+      getCart()
+    } else if(res.data.code === '400') {
+      ElMessage({
+        message: res.data.msg,
+        type: 'error',
+        center: true,
+      })
+    }
+  })
+}
+
+function initOrder() {
+  order.value = ref({
+    orderId: '',
+    username: '',
+    totalAmount: 0,
+    paymentMethod: '',
+    createTime: '',
+    status: '',
+  })
+}
 // 打开支付弹窗
 function openPayDialog() {
   payDialogVisible.value = true
 }
 
+function closePayDialog() {
+  payDialogVisible.value = false
+  initOrder()
+}
+
 function handleSubmitPay() {
-  submitOrder(cartItemIds, fullAddress, paymentMethod).then(res => {
+  const fullAddress = selectedRegion.value.join(',');
+  submitOrder(cartItemIds.value, fullAddress, paymentMethod.value).then(res => {
+    console.log(res.data.data)
     order.value = res.data.data
   })
   payDialogVisible.value = false
@@ -320,24 +348,24 @@ function handleSubmitPay() {
 
           <!-- 购物车侧边栏 -->
           <el-drawer v-model="cartVisible" title="购物车" direction="rtl" size="30%">
-            <div v-if="cart.length === 0" class="empty-text">购物车为空</div>
+            <div v-if="carts.length === 0" class="empty-text">购物车为空</div>
             <div v-else class="cart-items">
-              <div v-for="item in cart" :key="item.id" class="cart-item">
-                <span>{{ item.title }}</span>
-                <el-input-number v-model="item.quantity" :min="1" />
-                <span class="price">￥{{ item.price * item.quantity }}</span>
-                <el-button type="danger" icon="Delete" @click="removeFromCart(item.id)" circle />
+              <div v-for="item in carts" :key="item.cartItemId" class="cart-item">
+                <span>{{ item.product.title }}</span>
+                <el-input-number v-model="item.quantity" :min="1" @change="updateItemQuantity(item.cartItemId, item.quantity)"/>
+                <span class="price">￥{{ item.product.price * item.quantity }}</span>
+                <el-button type="danger" icon="Delete" @click="removeFromCart(item.cartItemId)" circle />
               </div>
               <div class="cart-footer">
-                <div class="total">总计：￥{{ totalPrice }}</div>
-                <el-button type="success" @click="openPayDialog" :disabled="cart.length === 0">立即支付</el-button>
+                <div class="total">总计：￥{{ totalAmount }}</div>
+                <el-button type="success" @click="openPayDialog" :disabled="carts.length === 0">立即支付</el-button>
               </div>
             </div>
           </el-drawer>
 
           <!-- 悬浮购物车按钮 -->
           <el-button class="floating-cart-btn" type="primary" icon="ShoppingCart" @click="cartVisible = true">
-            购物车（{{ totalItems }}）
+            购物车（{{ total }}）
           </el-button>
           <!-- 支付弹窗 -->
           <el-dialog v-model="payDialogVisible" title="确认支付信息">
@@ -360,7 +388,7 @@ function handleSubmitPay() {
             </div>
 
             <template #footer>
-              <el-button @click="payDialogVisible = false ">取消</el-button>
+              <el-button @click="closePayDialog">取消</el-button>
               <el-button type="primary" @click="handleSubmitPay">提交订单</el-button>
             </template>
             <div v-if="isOrderSubmitted" class="mt-6 p-4 border rounded shadow">

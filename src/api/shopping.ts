@@ -2,25 +2,15 @@ import {PRODUCT_MODULE, SHOPPING_MODULE} from "../api/_prefix";
 import {axios} from "../utils/request.ts";
 import {Carts, Orders, Product} from "../type";
 
-type addProductToCart = {
-    productId: string,
-    quantity: number
-};
 
 type updateCartItemQuantity = {
-    cartItemId: string,
     quantity: number,
 }
 
-type submitOrderInfo = {
-    cartItemIds: string[],
-    shipping_address: string
-    payment_method: string
-}
-
-export const addProductToCart = (addToCart: addProductToCart) => {
-    return axios.post(`${SHOPPING_MODULE}`, addToCart,
-        {headers: {'Content-Type': 'application/json'}})
+export const addProductToCart = (productId: number, quantity: number) => {
+    return axios.post(`${SHOPPING_MODULE}`, null, {
+        params: {productId, quantity }
+    })
         .then(res => {
             return res
         })
@@ -33,8 +23,8 @@ export const deleteCartItemById = (cartItemId: number) => {
         })
 }
 
-export const updateQuantity = (updateInfo: updateCartItemQuantity) => {
-    return axios.patch(`${SHOPPING_MODULE}/${updateInfo.cartItemId}`,
+export const updateQuantity = (cartItemId: number, quantity: updateCartItemQuantity) => {
+    return axios.patch(`${SHOPPING_MODULE}/${cartItemId}`,quantity,
         {headers: {'Content-Type': 'application/json'}})
         .then(res => {
             return res
@@ -49,10 +39,14 @@ export const getCartList = () => {
         })
 }
 
-export const submitOrder = (submit: submitOrderInfo) => {
-    return axios.post(`${SHOPPING_MODULE}/checkout`)
+export const submitOrder = (cartItemId: number[], shoppingAddress: string, paymentMethod: string) => {
+    const formData = new URLSearchParams();
+    cartItemId.forEach(id => formData.append('cartItemId', id));
+    formData.append('shoppingAddress', shoppingAddress);
+    formData.append('paymentMethod', paymentMethod);
+    return axios.post(`${SHOPPING_MODULE}/checkout`, formData, { headers: { 'Content-Type': 'application/x-www-form-urlencoded' }})
         .then(res => {
-            return res;
+            return res
         })
 }
 
