@@ -10,7 +10,6 @@ import {
   addProductToCart,
   deleteCartItemById,
   getCartList,
-  startPay,
   submitOrder,
   updateQuantity
 } from "../../api/shopping";
@@ -18,6 +17,7 @@ import {
 import {
   pcaTextArr,
 } from "element-china-area-data";
+import {startPay} from "../../api/order";
 
 
 // const user = ref(
@@ -78,7 +78,7 @@ const cartItemIds = computed(() => carts.value.map(item => Number(item.cartItemI
 
 const order = ref({
   orderId: '',
-  username: '',
+  userId: '',
   totalAmount: 0,
   paymentMethod: '',
   createTime: '',
@@ -161,7 +161,6 @@ function addToCart(product) {
     console.log("no")
     addItem(product.id, 1)
   }
-  getCart()
 }
 
 //将商品移除购物车
@@ -211,6 +210,7 @@ function updateItemQuantity(cartItemId, quantity) {
       })
     }
   })
+  getCart();
 }
 
 function addItem(productId, quantity) {
@@ -225,6 +225,7 @@ function addItem(productId, quantity) {
       })
     }
   })
+  getCart();
 }
 
 function deleteItem(cartItemId) {
@@ -242,14 +243,14 @@ function deleteItem(cartItemId) {
 }
 
 function initOrder() {
-  order.value = ref({
+  order.value = {
     orderId: '',
     username: '',
     totalAmount: 0,
     paymentMethod: '',
     createTime: '',
     status: '',
-  })
+  }
 }
 // 打开支付弹窗
 function openPayDialog() {
@@ -258,16 +259,26 @@ function openPayDialog() {
 
 function closePayDialog() {
   payDialogVisible.value = false
+  isOrderSubmitted.value = false
+  paymentMethod.value = ''
+  selectedRegion.value = []
   initOrder()
 }
 
 function handleSubmitPay() {
   const fullAddress = selectedRegion.value.join(',');
   submitOrder(cartItemIds.value, fullAddress, paymentMethod.value).then(res => {
-    console.log(res.data.data)
-    order.value = res.data.data
+      if (res.data.code === '200') {
+        console.log(res.data.data)
+        order.value = res.data.data
+      } else if(res.data.code === '400') {
+        ElMessage({
+          message: res.data.msg,
+          type: 'error',
+          center: true,
+        })
+      }
   })
-  payDialogVisible.value = false
   isOrderSubmitted.value = true
 }
 </script>
@@ -283,7 +294,7 @@ function handleSubmitPay() {
 
         <nav class="nav-menu">
           <a href="#" class="nav-link">首页</a>
-          <a href="#" class="nav-link">书库</a>
+          <router-link to="/user/advertisement" class="nav-link">广告</router-link>
           <a href="#" class="nav-link">推荐</a>
           <a href="#" class="nav-link">排行榜</a>
         </nav>
@@ -394,7 +405,7 @@ function handleSubmitPay() {
             <div v-if="isOrderSubmitted" class="mt-6 p-4 border rounded shadow">
               <el-descriptions title="订单详情" border :column="2">
                 <el-descriptions-item label="订单号">{{ order.orderId }}</el-descriptions-item>
-                <el-descriptions-item label="用户名">{{ order.username }}</el-descriptions-item>
+<!--                <el-descriptions-item label="用户名">{{ // order.username }}</el-descriptions-item>-->
                 <el-descriptions-item label="支付方式">{{ order.paymentMethod }}</el-descriptions-item>
                 <el-descriptions-item label="下单时间">{{ order.createTime }}</el-descriptions-item>
                 <el-descriptions-item label="订单金额">￥{{ order.totalAmount }}</el-descriptions-item>

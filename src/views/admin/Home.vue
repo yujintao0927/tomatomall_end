@@ -273,7 +273,7 @@ function deleteProduct(id) {
       </el-form>
       <template #footer>
         <el-button @click="closeStockDialog">取消</el-button>
-        <el-button type="primary" @click="updateStock(stock.productId, stock.amount)">保存</el-button>
+        <el-button type="primary" @click="updateStock(stock.productId, stock)">保存</el-button>
       </template>
     </el-dialog>
   </div>

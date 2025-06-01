@@ -29,7 +29,8 @@ type UpdateInfo = {
 }
 
 export const userLogin = (loginInfo: LoginInfo) => {
-    return axios.post(`${ACCOUNT_MODULE}/login`,null, {params: loginInfo})
+    return axios.post(`${ACCOUNT_MODULE}/login`,loginInfo,
+        {headers: {'Content-Type': 'application/json'}})
         .then(res => {
             return res
         })

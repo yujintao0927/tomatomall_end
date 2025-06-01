@@ -49,12 +49,8 @@ export interface Orders {
 
 export interface CartItem {
     cartItemId: number,
-    productId: number,
-    title: string,
-    price: number,
-    quantity: number,
-    cover: string,
-    description: string,
+    product: Product,
+    quantity: number
 }
 
 export interface Advertisement {

@@ -6,7 +6,9 @@ export type updateProductInfo = Product
 
 export type addProductInfo = Product
 
+
 export type addStock = StockPile
+export type updateStock = StockPile
 
 export const getAllProductInfo = () => {
     return axios.get(`${PRODUCT_MODULE}`)
@@ -46,10 +48,9 @@ export const delProductInfo = (id: number) => {
 }
 
 
-export const updateStockpile = (productId: number, amount: number) => {
-    return axios.patch(`${PRODUCT_MODULE}/stockpile/${productId}`,null, {
-        params: { amount }
-    }).then(res => {
+export const updateStockpile = (productId: number, updateStock: updateStock) => {
+    return axios.patch(`${PRODUCT_MODULE}/stockpile/${productId}`,updateStock,
+        {headers: {'Content-Type': 'application/json'}}).then(res => {
             return res
         })
 }

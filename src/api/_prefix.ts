@@ -12,3 +12,6 @@ export const SHOPPING_MODULE = `${API_MODULE}/cart`
 
 //广告模块
 export const ADVERTISEMENT_MODULE = `${API_MODULE}/advertisements`
+
+
+export const ORDER_MODULE = `${API_MODULE}/orders`

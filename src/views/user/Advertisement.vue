@@ -90,10 +90,11 @@ function goToProduct(productId) {
 
 function initEditingAd() {
   editingAd.value = {
+    id: '',
     title: '',
     content: '',
-    image_url: '',
-    product_id: null
+    imageUrl: '',
+    productId: '',
   }
 }
 </script>
@@ -111,7 +112,7 @@ function initEditingAd() {
       <el-table-column prop="id" label="ID" width="80" />
       <el-table-column label="标题">
         <template #default="scope">
-          <el-link type="primary" @click="goToProduct(scope.row.product_id)">
+          <el-link type="primary" @click="goToProduct(Number(scope.row.productId))">
             {{ scope.row.title }}
           </el-link>
         </template>
@@ -138,7 +139,7 @@ function initEditingAd() {
     </el-table>
 
     <!-- 新增/编辑广告弹窗 -->
-    <el-dialog v-model="dialogVisible" :title="editingAd.id ? '编辑广告 ✏️' : '新增广告 🛒'" width="600px">
+    <el-dialog v-model="dialogVisible" width="600px">
       <el-form :model="editingAd" label-width="100px" class="px-2">
         <el-form-item label="标题">
           <el-input v-model="editingAd.title" placeholder="请输入广告标题" />
@@ -147,10 +148,10 @@ function initEditingAd() {
           <el-input type="textarea" v-model="editingAd.content" rows="3" placeholder="广告内容" />
         </el-form-item>
         <el-form-item label="图片URL">
-          <el-input v-model="editingAd.image_url" placeholder="图片地址" />
+          <el-input v-model="editingAd.imageUrl" placeholder="图片地址" />
         </el-form-item>
         <el-form-item label="商品ID">
-          <el-input-number v-model="editingAd.product_id" :min="1" />
+          <el-input-number v-model="editingAd.productId" :min="1" />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -196,3 +197,4 @@ h2 {
   }
 }
 </style>
+

@@ -3,7 +3,7 @@ import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import {Product} from "../../type";
-import {getProductInfo} from "../../api/products";
+import {getProductInfo, getStockpile} from "../../api/products";
 
 const route = useRoute()
 const router = useRouter()
@@ -16,6 +16,9 @@ function getProductById(id) {
   getProductInfo(Number(id)).then(res => {
     if (res.data.code === '200') {  //类型守卫，它检查 res.data 对象中是否存在名为 code 的属性
       product.value = res.data.data
+      getStockpile(productId).then(res => {
+        product.value.stockpile = res.data.data
+      })
     } else {
       ElMessage({
         message: res.data.msg,
@@ -57,6 +60,10 @@ const goBack = () => {
             <el-tag v-for="(spec, idx) in product.specifications" :key="idx" class="mr-2"> {{ spec.item }}: {{ spec.value }}</el-tag>
           </div>
 
+          <div class="text-lg text-gray-800 mb-2">
+            <strong>库存：{{product.stockpile.amount}}</strong>
+          </div>
+
           <div class="text-2xl font-bold text-pink-600 mt-4">
             💰 ¥{{ product.price.toFixed(2) }}
           </div>
@@ -64,7 +71,6 @@ const goBack = () => {
 
         <div class="mt-6 flex gap-4">
           <el-button type="primary" icon="Back" @click="goBack">返回</el-button>
-          <el-button type="success" icon="ShoppingCartFull">加入购物车</el-button>
         </div>
       </div>
     </div>

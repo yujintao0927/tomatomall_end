@@ -1,6 +1,5 @@
-import {PRODUCT_MODULE, SHOPPING_MODULE} from "../api/_prefix";
+import {SHOPPING_MODULE} from "../api/_prefix";
 import {axios} from "../utils/request.ts";
-import {Carts, Orders, Product} from "../type";
 
 
 type updateCartItemQuantity = {
@@ -50,12 +49,6 @@ export const submitOrder = (cartItemId: number[], shoppingAddress: string, payme
         })
 }
 
-export const startPay = (orderId: string) => {
-    return axios.post(`/api/orders/${orderId}/pay`)
-        .then(res => {
-            return res;
-        })
-}
 
 
 
