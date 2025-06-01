@@ -187,6 +187,25 @@ function deleteProduct(id) {
   })
 }
 
+
+function handleCoverUploadSuccess(response) {
+  // 假设后端返回上传后的图片 URL
+  this.editingProduct.cover = response.url;
+}
+
+function beforeCoverUpload(file) {
+  const isImage = file.type.startsWith('image/');
+  const isLt2M = file.size / 1024 / 1024 < 2;
+
+  if (!isImage) {
+    this.$message.error('只能上传图片文件!');
+  }
+  if (!isLt2M) {
+    this.$message.error('图片大小不能超过 2MB!');
+  }
+  return isImage && isLt2M;
+}
+
 </script>
 
 <template>
@@ -240,8 +259,17 @@ function deleteProduct(id) {
         <el-form-item label="详情">
           <el-input type="textarea" v-model="editingProduct.detail" rows="3" placeholder="详细介绍内容" />
         </el-form-item>
-        <el-form-item label="封面链接">
-          <el-input v-model="editingProduct.cover" placeholder="请输入封面图片地址" clearable />
+        <el-form-item label="封面图片">
+          <el-upload
+              class="upload-demo"
+              action="http://localhost:8080/api/upload"
+              :show-file-list="false"
+              :on-success="handleCoverUploadSuccess"
+              :before-upload="beforeCoverUpload"
+          >
+            <img v-if="editingProduct.cover" :src="editingProduct.cover" class="cover-preview" />
+            <el-button v-else type="primary">上传封面</el-button>
+          </el-upload>
         </el-form-item>
         <el-form-item label="商品规格">
           <div v-for="(spec, index) in editingProduct.specifications" :key="index" class="mb-2 flex items-center gap-2">

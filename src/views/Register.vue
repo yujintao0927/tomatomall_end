@@ -173,6 +173,8 @@ const handleLogoSuccess = (response, file) => {
   fileList.value = [file];
 };
 
+
+
 </script>
 
 <style scoped>

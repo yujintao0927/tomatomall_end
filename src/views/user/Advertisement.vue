@@ -97,6 +97,24 @@ function initEditingAd() {
     productId: '',
   }
 }
+
+function handleCoverUploadSuccess(response) {
+  // 假设后端返回上传后的图片 URL
+  this.editingProduct.cover = response.url;
+}
+
+function beforeCoverUpload(file) {
+  const isImage = file.type.startsWith('image/');
+  const isLt2M = file.size / 1024 / 1024 < 2;
+
+  if (!isImage) {
+    this.$message.error('只能上传图片文件!');
+  }
+  if (!isLt2M) {
+    this.$message.error('图片大小不能超过 2MB!');
+  }
+  return isImage && isLt2M;
+}
 </script>
 
 <template>
@@ -147,9 +165,19 @@ function initEditingAd() {
         <el-form-item label="内容">
           <el-input type="textarea" v-model="editingAd.content" rows="3" placeholder="广告内容" />
         </el-form-item>
-        <el-form-item label="图片URL">
-          <el-input v-model="editingAd.imageUrl" placeholder="图片地址" />
+        <el-form-item label="封面图片">
+          <el-upload
+              class="upload-demo"
+              action="http://localhost:8080/api/upload"
+              :show-file-list="false"
+              :on-success="handleCoverUploadSuccess"
+              :before-upload="beforeCoverUpload"
+          >
+            <img v-if="editingProduct.cover" :src="editingProduct.cover" class="cover-preview" />
+            <el-button v-else type="primary">上传封面</el-button>
+          </el-upload>
         </el-form-item>
+
         <el-form-item label="商品ID">
           <el-input-number v-model="editingAd.productId" :min="1" />
         </el-form-item>
