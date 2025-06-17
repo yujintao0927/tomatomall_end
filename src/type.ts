@@ -3,6 +3,10 @@ export interface User {
     name: string
     avatar: string
     email: string
+    telephone: string
+    role: string
+    username: string
+
 }
 
 export interface StockPile {
@@ -57,6 +61,6 @@ export interface Advertisement {
     id: string,
     title: string,
     content: string,
-    imageUrl: string,
+    imgUrl: string,
     productId: string,
 }

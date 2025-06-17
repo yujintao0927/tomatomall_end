@@ -71,6 +71,12 @@ export const addStockPile = (addStock: addStock) => {
         })
 }
 
+export const getMyProducts = () => {
+    return axios.get(`${PRODUCT_MODULE}/myProduct`).then(res => {
+        return res;
+    })
+}
+
 
 
 

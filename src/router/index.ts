@@ -1,18 +1,68 @@
-import {createRouter, createWebHashHistory, createWebHistory} from 'vue-router';
+import {createRouter, createWebHistory} from 'vue-router';
+import Home from '../views/user/Home.vue'
+import Login from '../views/Login.vue'
+import Register from '../views/Register.vue'
+import ProductDetail from '../views/product/ProductDetail.vue'
+import Cart from '../views/user/Cart.vue'
+import Profile from '../views/user/Profile.vue'
+import MyBooks from '../views/user/MyBooks.vue'
+import Advertisement from '../views/user/Advertisement.vue'
+import Ranking from '../views/user/Ranking.vue'
+import PendingOrder from "../views/user/PendingOrder.vue";
 
 const router = createRouter({
     history: createWebHistory(),
     routes: [{
         path: '/',
-        redirect: '/login',
+        name: 'home',
+        component: Home
     }, {
         path: '/login',
-        component: () => import('../views/Login.vue'),
-        meta: {title: '用户登录'}
+        name: 'login',
+        component: Login
     }, {
         path: '/register',
-        component: () => import('../views/Register.vue'),
-        meta: {title: '用户注册'}
+        name: 'register',
+        component: Register
+    }, {
+        path: '/products/:id',
+        name: 'product-detail',
+        component: ProductDetail
+    }, {
+        path: '/user/cart',
+        name: 'cart',
+        component: Cart,
+        meta: {
+            requiresAuth: true,
+            role: 'USER'
+        }
+    }, {
+        path: '/user/profile',
+        name: 'profile',
+        component: Profile,
+        meta: {
+            requiresAuth: true
+        }
+    }, {
+        path: '/user/MyBooks',
+        name: 'my-books',
+        component: MyBooks,
+        meta: {
+            requiresAuth: true,
+            role: 'USER'
+        }
+    }, {
+        path: '/user/advertisement',
+        name: 'advertisement',
+        component: Advertisement,
+        meta: {
+            requiresAuth: true,
+            role: 'ADMIN'
+        }
+    }, {
+        path: '/user/ranking',
+        name: 'ranking',
+        component: Ranking
     }, {
         path: '/home',
         component: () => import('../views/user/Home.vue'),
@@ -28,15 +78,9 @@ const router = createRouter({
         component: () => import('../views/admin/Home.vue'),
         meta: {title: 'adminHome'}
     }, {
-        path: '/user/advertisement',
-        name: 'advertisement',
-        component: () => import('../views/user/Advertisement.vue'),
-        meta: {title: 'advertisement'}
-    }, {
-        path: '/products/:id',
-        name: 'productDetail',
-        component: () => import('../views/product/ProductDetail.vue'),
-        meta: {title: 'productDetail'}
+        path: '/user/pendingOrders',
+        name: 'pendingOrders',
+        component: PendingOrder,
     }]
 })
 
@@ -48,7 +92,7 @@ router.beforeEach((to, _, next) => {
         document.title = to.meta.title
     }
 
-    if ('45') {
+    if (token) {
         if (to.meta.permission) {
             if (to.meta.permission.includes(role!)) {
                 next()

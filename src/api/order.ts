@@ -10,3 +10,10 @@ export const startPay = (orderId: number) => {
             return res;
         })
 }
+
+export const getPendingOrders = () => {
+    return axios.get('/api/orders/pendingOrders')
+        .then(res => {
+            return res;
+        })
+}

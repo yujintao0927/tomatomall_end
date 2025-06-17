@@ -169,7 +169,7 @@ const beforeLogoUpload = (file) => {
 };
 
 const handleLogoSuccess = (response, file) => {
-  form.value.image = response.result;
+  form.value.avatar = response.data;
   fileList.value = [file];
 };
 
@@ -222,5 +222,13 @@ h1 {
 h2 {
   font-family: 'Arial', sans-serif;
   color: #e44d26;
+}
+
+.logo-image {
+  width: 100px;        /* 或指定容器宽度 */
+  height: 100px;       /* 你也可以用 auto 高度以保持比例 */
+  object-fit: cover;   /* 保持填满但裁剪，多用于头像 */
+  border-radius: 50%;  /* 可选：让头像变圆 */
+  border: 1px solid #ccc;
 }
 </style>

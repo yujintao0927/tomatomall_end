@@ -28,6 +28,11 @@ type UpdateInfo = {
     location?: string,
 }
 
+type UpdatePasswordInfo = {
+    oldPassword: string,
+    newPassword: string,
+}
+
 export const userLogin = (loginInfo: LoginInfo) => {
     return axios.post(`${ACCOUNT_MODULE}/login`,loginInfo,
         {headers: {'Content-Type': 'application/json'}})
@@ -56,8 +61,12 @@ export const userInfo = (username: string) => {
 
 // 更新用户信息
 export const userInfoUpdate = (updateInfo: UpdateInfo) => {
-    return axios.put(`${ACCOUNT_MODULE}/update`, updateInfo, {headers: {'Content-Type': 'application/json'}})
+    return axios.put(`${ACCOUNT_MODULE}`, updateInfo, {headers: {'Content-Type': 'application/json'}})
         .then(res => {
             return res
         })
+}
+
+export const updatePassword = (updatePassword: UpdatePasswordInfo) => {
+    return axios.post(`${ACCOUNT_MODULE}/updatePassword`, updatePassword, {headers: {'Content-Type': 'application/json'}})
 }

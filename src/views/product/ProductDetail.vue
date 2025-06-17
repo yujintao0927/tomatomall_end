@@ -4,17 +4,19 @@ import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import {Product} from "../../type";
 import {getProductInfo, getStockpile} from "../../api/products";
+import {addProductToCart} from "../../api/shopping";
 
 const route = useRoute()
 const router = useRouter()
 const productId = route.params.id
+const quantity = ref(1)
 
 const product = ref<Product>()
 getProductById(productId)
 
 function getProductById(id) {
   getProductInfo(Number(id)).then(res => {
-    if (res.data.code === '200') {  //类型守卫，它检查 res.data 对象中是否存在名为 code 的属性
+    if (res.data.code === '200') {
       product.value = res.data.data
       getStockpile(productId).then(res => {
         product.value.stockpile = res.data.data
@@ -29,69 +31,269 @@ function getProductById(id) {
   })
 }
 
-
 const goBack = () => {
   router.back()
 }
+
+const addToCart = () => {
+  if (!product.value.stockpile || product.value.stockpile.amount <= 0) {
+    ElMessage.warning('商品库存不足')
+    return
+  }
+  if (quantity.value > product.value.stockpile.amount) {
+    ElMessage.warning('超出库存数量')
+    return
+  }
+  addProductToCart(Number(productId), quantity.value).then(res => {
+    if (res.data.code === '200') {
+      ElMessage.success('添加成功')
+    } else {
+      ElMessage.error(res.data.msg)
+    }
+  })
+}
 </script>
 
-
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-white to-purple-50 p-8">
-    <div class="max-w-5xl mx-auto bg-white rounded-3xl shadow-2xl p-6 flex flex-col md:flex-row gap-6 animate-fade-in">
+  <div class="product-detail-container">
+    <div class="product-card">
       <!-- 商品封面图 -->
-      <div class="w-full md:w-1/2">
+      <div class="product-image-section">
         <el-image
-            :src="product.cover"
-            fit="cover"
-            style="width: 100%; height: 300px; border-radius: 1rem; object-fit: cover"
-            :preview-src-list="[product.cover]"
+          :src="product?.cover"
+          fit="cover"
+          class="product-image"
+          :preview-src-list="[product?.cover]"
         />
       </div>
 
       <!-- 商品信息 -->
-      <div class="w-full md:w-1/2 flex flex-col justify-between">
-        <div>
-          <h2 class="text-3xl font-bold text-purple-700 mb-2">{{ product.title }}</h2>
-          <p class="text-gray-600 mb-4">{{ product.description }}</p>
+      <div class="product-info-section">
+        <div class="product-header">
+          <h1 class="product-title">{{ product?.title }}</h1>
+          <div class="product-price">¥{{ product?.price?.toFixed(2) }}</div>
+        </div>
 
-          <div class="text-lg text-gray-800 mb-2">
-            <strong>规格：</strong>
-            <el-tag v-for="(spec, idx) in product.specifications" :key="idx" class="mr-2"> {{ spec.item }}: {{ spec.value }}</el-tag>
-          </div>
+        <div class="product-description">
+          {{ product?.description }}
+        </div>
 
-          <div class="text-lg text-gray-800 mb-2">
-            <strong>库存：{{product.stockpile.amount}}</strong>
-          </div>
-
-          <div class="text-2xl font-bold text-pink-600 mt-4">
-            💰 ¥{{ product.price.toFixed(2) }}
+        <div class="product-specs">
+          <h3>商品规格</h3>
+          <div class="specs-grid">
+            <el-tag 
+              v-for="(spec, idx) in product?.specifications" 
+              :key="idx"
+              class="spec-tag"
+            >
+              {{ spec.item }}: {{ spec.value }}
+            </el-tag>
           </div>
         </div>
 
-        <div class="mt-6 flex gap-4">
-          <el-button type="primary" icon="Back" @click="goBack">返回</el-button>
+        <div class="product-stock">
+          <h3>库存状态</h3>
+          <div class="stock-info" :class="{ 'low-stock': product?.stockpile?.amount <= 10 }">
+            <el-icon><Box /></el-icon>
+            <span>当前库存: {{ product?.stockpile?.amount || 0 }} 件</span>
+          </div>
+        </div>
+
+        <div class="product-actions">
+          <div class="quantity-selector">
+            <el-input-number 
+              v-model="quantity" 
+              :min="1" 
+              :max="product?.stockpile?.amount || 1"
+              size="large"
+            />
+          </div>
+          <el-button 
+            type="primary" 
+            size="large" 
+            class="add-to-cart-btn"
+            :disabled="!product?.stockpile?.amount"
+            @click="addToCart"
+          >
+            <el-icon><ShoppingCart /></el-icon>
+            加入购物车
+          </el-button>
+        </div>
+
+        <div class="action-buttons">
+          <el-button @click="goBack" plain>
+            <el-icon><Back /></el-icon>
+            返回
+          </el-button>
         </div>
       </div>
     </div>
   </div>
 </template>
 
-
 <style scoped>
-@keyframes fade-in {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
+.product-detail-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+  padding: 2rem;
+}
 
-  to {
-    opacity: 1;
-    transform: translateY(0);
+.product-card {
+  max-width: 1200px;
+  margin: 0 auto;
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  padding: 2rem;
+}
+
+@media (min-width: 768px) {
+  .product-card {
+    flex-direction: row;
   }
 }
 
-.animate-fade-in {
-  animation: fade-in 0.8s ease;
+.product-image-section {
+  flex: 1;
+  min-width: 300px;
+}
+
+.product-image {
+  width: 100%;
+  height: 400px;
+  border-radius: 12px;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.product-image:hover {
+  transform: scale(1.02);
+}
+
+.product-info-section {
+  flex: 1;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.product-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.product-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #2c3e50;
+  margin: 0;
+}
+
+.product-price {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #e74c3c;
+}
+
+.product-description {
+  color: #666;
+  line-height: 1.6;
+  font-size: 1.1rem;
+}
+
+.product-specs {
+  background: #f8f9fa;
+  padding: 1rem;
+  border-radius: 12px;
+}
+
+.product-specs h3 {
+  margin: 0 0 1rem 0;
+  color: #2c3e50;
+}
+
+.specs-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.spec-tag {
+  font-size: 0.9rem;
+}
+
+.product-stock {
+  background: #f8f9fa;
+  padding: 1rem;
+  border-radius: 12px;
+}
+
+.product-stock h3 {
+  margin: 0 0 1rem 0;
+  color: #2c3e50;
+}
+
+.stock-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #27ae60;
+  font-size: 1.1rem;
+}
+
+.stock-info.low-stock {
+  color: #e74c3c;
+}
+
+.product-actions {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  margin-top: 1rem;
+}
+
+.quantity-selector {
+  width: 150px;
+}
+
+.add-to-cart-btn {
+  flex: 1;
+  height: 48px;
+  font-size: 1.1rem;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+@media (max-width: 768px) {
+  .product-card {
+    padding: 1rem;
+  }
+
+  .product-title {
+    font-size: 1.5rem;
+  }
+
+  .product-price {
+    font-size: 1.5rem;
+  }
+
+  .product-actions {
+    flex-direction: column;
+  }
+
+  .quantity-selector {
+    width: 100%;
+  }
 }
 </style>

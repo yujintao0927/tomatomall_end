@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import {router} from '../../router/index';
 import { ElMessage } from 'element-plus'
-import {createAd, delAd, getAd, updateAd} from "../../api/advertisement.ts";
-import {Advertisement} from "../../type.ts"
-import {get} from "axios";
+import {createAd, delAd, getAd, updateAd} from "../../api/advertisement";
+import {Advertisement} from "../../type"
+
+const userRole = ref(sessionStorage.getItem("role"))
+const isAdmin = computed(() => userRole.value === "ADMIN")
 
 //获得广告
 const ads = ref<Advertisement[]>([])
@@ -12,7 +14,7 @@ getAdvertisement()
 
 function getAdvertisement() {
   getAd().then(res => {
-    if (res.data.code === '200') {  //类型守卫，它检查 res.data 对象中是否存在名为 code 的属性
+    if (res.data.code === '200') {
       ads.value = res.data.data
     } else {
       ElMessage({
@@ -22,7 +24,6 @@ function getAdvertisement() {
       })
     }
   })
-
 }
 
 const dialogVisible = ref(false)
@@ -93,14 +94,14 @@ function initEditingAd() {
     id: '',
     title: '',
     content: '',
-    imageUrl: '',
+    imgUrl: '',
     productId: '',
   }
 }
 
 function handleCoverUploadSuccess(response) {
   // 假设后端返回上传后的图片 URL
-  this.editingProduct.cover = response.url;
+  this.editingAd.imgUrl = response.data;
 }
 
 function beforeCoverUpload(file) {
@@ -121,9 +122,9 @@ function beforeCoverUpload(file) {
   <div class="p-8 bg-gradient-to-r from-pink-50 via-purple-50 to-blue-50 min-h-screen rounded-xl shadow-lg">
     <div class="flex justify-between items-center mb-6">
       <h2 class="text-3xl font-bold text-purple-800 flex items-center gap-2">
-        <i class="el-icon-picture-outline"></i> 广告管理
+        <i class="el-icon-picture-outline"></i> 推荐
       </h2>
-      <el-button type="primary" size="large" icon="Plus" @click="openAddDialog">新增广告</el-button>
+      <el-button type="primary" size="large" icon="Plus" @click="openAddDialog" v-if="isAdmin">新增广告</el-button>
     </div>
 
     <el-table :data="ads" border stripe class="rounded-xl shadow-md" style="background-color: white">
@@ -139,7 +140,7 @@ function beforeCoverUpload(file) {
       <el-table-column label="图片" width="120">
         <template #default="scope">
           <el-image
-              :src="scope.row.image_url"
+              :src="scope.row.imgUrl"
               style="width: 100px; height: 60px; border-radius: 8px"
               fit="cover"
           />
@@ -168,12 +169,12 @@ function beforeCoverUpload(file) {
         <el-form-item label="封面图片">
           <el-upload
               class="upload-demo"
-              action="http://localhost:8080/api/upload"
+              action="http://localhost:8080/upload"
               :show-file-list="false"
               :on-success="handleCoverUploadSuccess"
               :before-upload="beforeCoverUpload"
           >
-            <img v-if="editingProduct.cover" :src="editingProduct.cover" class="cover-preview" />
+            <img v-if="editingAd.imgUrl" :src="editingAd.imgUrl" class="logo-image" />
             <el-button v-else type="primary">上传封面</el-button>
           </el-upload>
         </el-form-item>
@@ -192,22 +193,13 @@ function beforeCoverUpload(file) {
 
 
 <style scoped>
-.el-dialog {
-  border-radius: 16px;
-}
 
-.el-table {
-  background-color: #fff;
-  border-radius: 16px;
-  overflow: hidden;
-}
-
-.el-button {
-  transition: all 0.3s ease;
-}
-
-.el-button:hover {
-  transform: scale(1.05);
+.logo-image {
+  width: 100px;        /* 或指定容器宽度 */
+  height: 100px;       /* 你也可以用 auto 高度以保持比例 */
+  object-fit: cover;   /* 保持填满但裁剪，多用于头像 */
+  border-radius: 50%;  /* 可选：让头像变圆 */
+  border: 1px solid #ccc;
 }
 
 h2 {
