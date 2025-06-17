@@ -84,7 +84,11 @@ function getProducts() {
 
 function updateProduct() {
   updateProductInfo(editingProduct.value).then(res => {
-    ElMessage.success('修改成功')
+    if(res.data.code === '200') {
+      ElMessage.success('修改成功')
+    } else {
+      ElMessage.error("修改失败");
+    }
   })
 }
 
@@ -129,6 +133,7 @@ function removeSpec(index) {
 }
 
 function saveProduct() {
+  console.log(editingProduct.value)
   if (editingProduct.value.id) {
     updateProduct()
   } else {
@@ -153,7 +158,7 @@ function resetStock() {
 
 function openStockDialog(id) {
   getStockpile(Number(id)).then(res => {
-    stock.value = res.data.data
+    if(res.data.data != null)     stock.value = res.data.data
     stockDialogVisible.value = true
   })
 }
@@ -198,6 +203,9 @@ function beforeCoverUpload(file) {
   return isImage && isLt2M;
 }
 
+function goToAd() {
+  router.push('/user/Advertisement')
+}
 </script>
 
 <template>
@@ -228,6 +236,7 @@ function beforeCoverUpload(file) {
           <span>📚 商品管理中心</span>
         </h2>
         <el-button type="primary" size="large" icon="Plus" @click="openAddDialog">新增商品</el-button>
+        <el-button type="success" size="large" icon="Plus" @click="goToAd">新增推荐</el-button>
       </div>
 
       <el-table :data="productList" border stripe class="rounded-xl shadow-lg overflow-hidden">
@@ -302,9 +311,6 @@ function beforeCoverUpload(file) {
       <!-- 修改库存弹窗 -->
       <el-dialog v-model="stockDialogVisible" title="🧮 修改库存" width="400px">
         <el-form label-width="100px">
-          <el-form-item label="商品 ID">
-            <el-input v-model="stock.id" disabled />
-          </el-form-item>
           <el-form-item label="库存数量">
             <el-input-number v-model="stock.amount" :min="0" controls-position="right" />
           </el-form-item>

@@ -68,5 +68,5 @@ export const userInfoUpdate = (updateInfo: UpdateInfo) => {
 }
 
 export const updatePassword = (updatePassword: UpdatePasswordInfo) => {
-    return axios.post(`${ACCOUNT_MODULE}/updatePassword`, updatePassword, {headers: {'Content-Type': 'application/json'}})
+    return axios.put(`${ACCOUNT_MODULE}/updatePassword`, updatePassword, {headers: {'Content-Type': 'application/json'}})
 }

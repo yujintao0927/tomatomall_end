@@ -106,6 +106,10 @@ function addToCart(product) {
   })
 }
 
+function goToProduct(productId) {
+  router.push(`/products/${productId}`)
+}
+
 </script>
 
 <template>
@@ -129,7 +133,6 @@ function addToCart(product) {
             <router-link to="/user/profile" class="dropdown-item">个人中心</router-link>
             <router-link to="/user/myBooks" class="dropdown-item">我的书架</router-link>
             <router-link to="/user/pendingOrders" class="dropdown-item">未支付订单</router-link>
-            <a href="#" class="dropdown-item">设置</a>
             <a href="#" class="dropdown-item" @click="handleLogout">退出登录</a>
           </div>
         </div>
@@ -175,10 +178,16 @@ function addToCart(product) {
           <!-- 商品展示区 -->
           <div class="product-list">
             <el-card v-for="item in products" :key="item.id" class="product-card" shadow="hover">
-              <img :src="item.cover" class="product-image" />
+              <img :src="item.cover" class="product-image" @click="goToProduct(Number(item.id))"/>
               <h3>{{ item.title }}</h3>
               <p class="price">￥{{ item.price }}</p>
-              <el-button type="primary" @click="addToCart(item)">加入购物车</el-button>
+              <el-button
+                  type="primary"
+                  :disabled="item.stockpile == null"
+                  @click="addToCart(item)"
+              >
+                加入购物车
+              </el-button>
             </el-card>
           </div>
         </div>

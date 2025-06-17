@@ -201,7 +201,7 @@ getCart()
             :label="item.cartItemId"
           />
           <div class="item-info">
-            <img :src="item.product.image" :alt="item.product.title" class="item-image">
+            <img :src="item.product.cover" :alt="item.product.title" class="item-image">
             <span class="item-title">{{ item.product.title }}</span>
           </div>
           <span class="item-price">￥{{ item.product.price }}</span>

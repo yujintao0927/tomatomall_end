@@ -101,7 +101,8 @@ function initEditingAd() {
 
 function handleCoverUploadSuccess(response) {
   // 假设后端返回上传后的图片 URL
-  this.editingAd.imgUrl = response.data;
+  console.log(response.data)
+  editingAd.value.imgUrl = response.data;
 }
 
 function beforeCoverUpload(file) {
@@ -146,8 +147,8 @@ function beforeCoverUpload(file) {
           />
         </template>
       </el-table-column>
-      <el-table-column prop="product_id" label="商品ID" width="100" />
-      <el-table-column label="操作" width="240">
+      <el-table-column prop="productId" label="商品ID" width="100" />
+      <el-table-column label="操作" width="240" v-if="isAdmin">
         <template #default="scope">
           <div class="flex gap-2">
             <el-button size="small" type="primary" @click="openEditDialog(scope.row)">编辑</el-button>

@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import { User } from '../../type'
 import {updatePassword, userInfo, userInfoUpdate} from "../../api/user";
+import {router} from "../../router/index";
 
 const user = ref<User>()
 getUserInfo();
@@ -103,6 +104,7 @@ const handlePasswordSubmit = () => {
     }).then(res => {
       if(res.data.code === '200') {
         ElMessage.success('密码修改成功')
+        router.push('/login')
       } else {
         ElMessage({
           message: res.data.msg,

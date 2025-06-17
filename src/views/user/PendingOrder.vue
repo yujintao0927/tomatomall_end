@@ -86,12 +86,18 @@ const confirmPay = () => {
   if (!currentOrder.value) return
 
   startPay(Number(currentOrder.value.orderId)).then(res => {
-    console.log(res.data)
     paymentForm.value = res.data
     console.log(paymentForm.value)
-    document.write(paymentForm.value)
-    document.forms[0].submit()
-    ElMessage.success('支付成功！')
+    // document.write(paymentForm.value)
+    // document.forms[0].submit()
+    // ElMessage.success('支付成功！')
+    const container = document.createElement("div")
+    container.style.display = "none";
+    container.innerHTML = paymentForm.value
+    const form = container.querySelector("form") as HTMLFormElement
+    if(form) {
+      form.submit()
+    }
   })
   payDialogVisible.value = false
   fetchOrders()

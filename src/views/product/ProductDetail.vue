@@ -76,6 +76,11 @@ const addToCart = () => {
 
         <div class="product-description">
           {{ product?.description }}
+          <div class="rating">
+            评分：
+            <span class="rate-number">{{ product?.rate }}</span>
+            <span class="star">★</span>
+          </div>
         </div>
 
         <div class="product-specs">
@@ -100,14 +105,6 @@ const addToCart = () => {
         </div>
 
         <div class="product-actions">
-          <div class="quantity-selector">
-            <el-input-number 
-              v-model="quantity" 
-              :min="1" 
-              :max="product?.stockpile?.amount || 1"
-              size="large"
-            />
-          </div>
           <el-button 
             type="primary" 
             size="large" 
@@ -295,5 +292,26 @@ const addToCart = () => {
   .quantity-selector {
     width: 100%;
   }
+
+  .rating {
+    margin-top: 8px;
+    font-weight: bold;
+    font-size: 16px;
+    color: #333;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .rate-number {
+    font-size: 20px;
+    color: #ff8c00; /* 橘黄色，吸引注意 */
+  }
+
+  .star {
+    color: gold;
+    font-size: 18px;
+  }
+
 }
 </style>
