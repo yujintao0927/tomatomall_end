@@ -156,10 +156,20 @@ function handleSubmitPay() {
 // 支付订单
 function payOrder() {
   startPay(Number(order.value.orderId)).then(res => {
-    paymentForm.value = res.data.data.paymentForm
-    console.log(paymentForm.value)
-    document.write(paymentForm.value)
-    document.forms[0].submit()
+    console.log(res.data)
+
+    // 创建一个容器 div（避免破坏 Vue）
+    const container = document.createElement('div')
+    container.innerHTML = res.data // 这是后端返回的一段完整的 <form>...</form> HTML
+
+    document.body.appendChild(container)
+
+    const form = container.querySelector('form')
+    if (form) {
+      form.submit()
+    } else {
+      console.error('form not found in response')
+    }
   })
   ElMessage.success('支付成功！')
   selectedItems.value = []
