@@ -100,7 +100,6 @@ const confirmPay = () => {
       console.error('form not found in response')
     }
   })
-  ElMessage.success('支付成功！')
   payDialogVisible.value = false
   fetchOrders()
 }

@@ -73,7 +73,9 @@ const filteredBooks = computed(() => {
   // 排序
   result.sort((a, b) => {
     if (sortBy.value === 'name') {
-      return a.name.localeCompare(b.name)
+      const nameA = a?.name || ''
+      const nameB = b?.name || ''
+      return nameA.localeCompare(nameB)
     } else if (sortBy.value === 'price') {
       return a.price - b.price
     }

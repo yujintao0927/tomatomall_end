@@ -9,6 +9,8 @@ import MyBooks from '../views/user/MyBooks.vue'
 import Advertisement from '../views/user/Advertisement.vue'
 import Ranking from '../views/user/Ranking.vue'
 import PendingOrder from "../views/user/PendingOrder.vue";
+import PaymentSuccess from "../views/user/PaymentSuccess.vue";
+import PaymentFailed from "../views/user/PaymentFailed.vue";
 
 const router = createRouter({
     history: createWebHistory(),
@@ -81,6 +83,14 @@ const router = createRouter({
         path: '/user/pendingOrders',
         name: 'pendingOrders',
         component: PendingOrder,
+    }, {
+        path: '/payment/success',
+        name: 'paymentSuccess',
+        component: PaymentSuccess,
+        meta: {
+            requiresAuth: true,
+            title: '支付成功'
+        }
     }]
 })
 
@@ -107,7 +117,10 @@ router.beforeEach((to, _, next) => {
             next();
         } else if (to.path === '/register') {
             next()
-        } else {
+        } else if(to.path === '/payment/success') {
+            next()
+        }
+        else {
             next('/login')
         }
     }

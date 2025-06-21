@@ -171,7 +171,6 @@ function payOrder() {
       console.error('form not found in response')
     }
   })
-  ElMessage.success('支付成功！')
   selectedItems.value = []
   getCart()
   payDialogVisible.value = false
